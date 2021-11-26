@@ -41,7 +41,11 @@ public class ArtifactController implements ResourceController<Artifact> {
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
+<<<<<<< Updated upstream
     private ObjectMapper mapper = new ObjectMapper();
+=======
+    private static final Object mutex = new Object();
+>>>>>>> Stashed changes
 
     @Inject
     RegistryClient registryClient;
@@ -129,12 +133,33 @@ public class ArtifactController implements ResourceController<Artifact> {
                     return UpdateControl.updateStatusSubResource(resource);
                 }
 
+<<<<<<< Updated upstream
                 if (beforeHandleMetadataHash != afterHandleMetadataHash) {
                     log.debug("Updating metadata {}", resource.getMetadata().getName());
                     registryClient.updateArtifactVersionMetaData(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(), newMetadata);
                 } else {
                     log.debug("Metadata was not updated, doing nothing {}", resource.getMetadata().getName());
                 }
+=======
+            boolean updateMeta = false;
+
+            debugLog(spec, "Processing spec with name " + spec.getName());
+            if (isMetaDiff(spec.getName(), meta.getName())) {
+                updateMeta = true;
+            }
+
+            if (isMetaDiff(spec.getDescription(), meta.getDescription())) {
+                updateMeta = true;
+            }
+
+            if (isMetaDiff(spec.getLabels(), meta.getLabels())) {
+                updateMeta = true;
+            }
+
+            if (isMetaDiff(spec.getProperties(), meta.getProperties())) {
+                updateMeta = true;
+            }
+>>>>>>> Stashed changes
 
             }
 
@@ -178,7 +203,7 @@ public class ArtifactController implements ResourceController<Artifact> {
         return artifactMeta;
     }
 
-    private ArtifactContext createOrUpdateArtifact(ArtifactSpec spec, byte[] content) {
+    private synchronized ArtifactContext createOrUpdateArtifact(ArtifactSpec spec, byte[] content) {
         if (spec.getVersion() == null) {
             log.debug("Creating artifact {}", spec.getArtifactId());
             return ArtifactContext.metadata(registryClient.createArtifact(spec.getGroupId(), spec.getArtifactId(), spec.getVersion(),
